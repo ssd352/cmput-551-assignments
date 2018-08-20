@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     for r in range(numruns):
         trainset, testset = dtl.load_ctscan(trainsize,testsize)
+        print(trainset.shape[1])
         print(('Running on train={0} and test={1} samples for run {2}').format(trainset[0].shape[0], testset[0].shape[0],r))
 
         for p in range(numparams):
