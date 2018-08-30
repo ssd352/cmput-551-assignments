@@ -27,21 +27,24 @@ def geterror(predictions, ytest):
 if __name__ == '__main__':
     trainsize = 1000
     testsize = 5000
-    numruns = 1
+    numruns = 5
 
     regressionalgs = {'Random': algs.Regressor(),
                 'Mean': algs.MeanPredictor(),
-                'FSLinearRegressionAsc5': algs.FSLinearRegression({'features': [1,2,3,4,5]}),
-                'FSLinearRegressionAsc10': algs.FSLinearRegression({'features': range(10)}),
-                'FSLinearRegressionAsc20': algs.FSLinearRegression({'features': range(20)}),
-                'FSLinearRegressionAsc25': algs.FSLinearRegression({'features': range(25)}),
-                'FSLinearRegressionRand5': algs.FSLinearRegression({'features': np.random.choice(range(50), size=5, replace=False)}),
-                'FSLinearRegressionRand10': algs.FSLinearRegression({'features': np.random.choice(range(50), size=10, replace=False)}),
-                'FSLinearRegressionRand20': algs.FSLinearRegression({'features': np.random.choice(range(50), size=20, replace=False)}),
-                'FSLinearRegressionRand25': algs.FSLinearRegression({'features': np.random.choice(range(50), size=25, replace=False)}),
+                'FSLinearRegression5': algs.FSLinearRegression({'features': [1,2,3,4,5]}),
+                # 'FSLinearRegressionAsc10': algs.FSLinearRegression({'features': range(10)}),
+                # 'FSLinearRegressionAsc20': algs.FSLinearRegression({'features': range(20)}),
+                # 'FSLinearRegressionAsc25': algs.FSLinearRegression({'features': range(25)}),
+                # 'FSLinearRegressionRand5': algs.FSLinearRegression({'features': np.random.choice(range(50), size=5, replace=False)}),
+                # 'FSLinearRegressionRand10': algs.FSLinearRegression({'features': np.random.choice(range(50), size=10, replace=False)}),
+                # 'FSLinearRegressionRand20': algs.FSLinearRegression({'features': np.random.choice(range(50), size=20, replace=False)}),
+                # 'FSLinearRegressionRand25': algs.FSLinearRegression({'features': np.random.choice(range(50), size=25, replace=False)}),
                 'FSLinearRegression50': algs.FSLinearRegression({'features': range(50)}),
                 'RidgeLinearRegression': algs.RidgeLinearRegression(),
              }
+    # for numFeatures in range(15, 385, 50):
+    #     regressionalgs['FSLinearRegressionAsc{}'.format(numFeatures)] = algs.FSLinearRegression({'features': range(numFeatures) })
+    #     regressionalgs['FSLinearRegressionRand{}'.format(numFeatures)] = algs.FSLinearRegression({'features': np.random.choice(range(385), size=numFeatures, replace=False)})
     numalgs = len(regressionalgs)
 
     # Enable the best parameter to be selected, to enable comparison
@@ -59,7 +62,9 @@ if __name__ == '__main__':
 
     for r in range(numruns):
         trainset, testset = dtl.load_ctscan(trainsize,testsize)
-        print(trainset.shape[1])
+        # print(trainset[0].shape[1])
+        
+
         print(('Running on train={0} and test={1} samples for run {2}').format(trainset[0].shape[0], testset[0].shape[0],r))
 
         for p in range(numparams):
@@ -85,9 +90,12 @@ if __name__ == '__main__':
             if aveerror < besterror:
                 besterror = aveerror
                 bestparams = p
+        stderror = np.sqrt(np.sum((errors[learnername][:,:] - besterror) ** 2) / numruns)
+        # print((errors[learnername][:,:] - besterror) ** 2)
 
         # Extract best parameters
         learner.reset(parameters[bestparams])
         #print ('Best parameters for ' + learnername + ': ' + str(learner.getparams()))
         print ('Average error for ' + learnername + ': ' + str(besterror))
+        print('Standard error for {}: {}'.format(learnername, stderror))
 
