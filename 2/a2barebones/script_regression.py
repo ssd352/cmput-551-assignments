@@ -32,13 +32,6 @@ if __name__ == '__main__':
     regressionalgs = {'Random': algs.Regressor(),
                 'Mean': algs.MeanPredictor(),
                 'FSLinearRegression5': algs.FSLinearRegression({'features': [1,2,3,4,5]}),
-                # 'FSLinearRegressionAsc10': algs.FSLinearRegression({'features': range(10)}),
-                # 'FSLinearRegressionAsc20': algs.FSLinearRegression({'features': range(20)}),
-                # 'FSLinearRegressionAsc25': algs.FSLinearRegression({'features': range(25)}),
-                # 'FSLinearRegressionRand5': algs.FSLinearRegression({'features': np.random.choice(range(50), size=5, replace=False)}),
-                # 'FSLinearRegressionRand10': algs.FSLinearRegression({'features': np.random.choice(range(50), size=10, replace=False)}),
-                # 'FSLinearRegressionRand20': algs.FSLinearRegression({'features': np.random.choice(range(50), size=20, replace=False)}),
-                # 'FSLinearRegressionRand25': algs.FSLinearRegression({'features': np.random.choice(range(50), size=25, replace=False)}),
                 'FSLinearRegression50': algs.FSLinearRegression({'features': range(50)}),
                 'RidgeLinearRegression': algs.RidgeLinearRegression(),
              }
@@ -81,7 +74,6 @@ if __name__ == '__main__':
                 print ('Error for ' + learnername + ': ' + str(error))
                 errors[learnername][p,r] = error
 
-
     for learnername in regressionalgs:
         besterror = np.mean(errors[learnername][0,:])
         bestparams = 0
@@ -98,4 +90,3 @@ if __name__ == '__main__':
         #print ('Best parameters for ' + learnername + ': ' + str(learner.getparams()))
         print ('Average error for ' + learnername + ': ' + str(besterror))
         print('Standard error for {}: {}'.format(learnername, stderror))
-
