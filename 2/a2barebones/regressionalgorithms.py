@@ -100,7 +100,7 @@ class FSLinearRegression(Regressor):
         # to make the regularization parameter not dependent on numsamples
         numsamples = Xtrain.shape[0]
         Xless = Xtrain[:,self.params['features']]
-        self.weights = np.dot(np.dot(np.linalg.pinv(np.dot(Xless.T,Xless)/numsamples), Xless.T),ytrain)/numsamples
+        self.weights = np.dot(np.dot(np.linalg.pinv((Xless.T @ Xless)/numsamples), Xless.T),ytrain)/numsamples
         # self.weights = np.dot(np.dot(np.linalg.inv(np.dot(Xless.T,Xless)/numsamples), Xless.T),ytrain)/numsamples
 
     def predict(self, Xtest):
@@ -126,7 +126,8 @@ class RidgeLinearRegression(Regressor):
         # to make the regularization parameter not dependent on numsamples
         numsamples = Xtrain.shape[0]
         Xless = Xtrain
-        self.weights = np.dot(np.dot(np.linalg.pinv(np.dot(Xless.T,Xless)+ self.params["regwgt"] * np.eye(Xtrain.shape[1])/numsamples), Xless.T),ytrain)/numsamples
+        self.lmd = self.params["regwgt"]
+        self.weights = np.dot(np.dot(np.linalg.pinv((Xless.T @ Xless) / numsamples + self.lmd * np.eye(Xtrain.shape[1])), Xless.T),ytrain)/numsamples
         # self.weights = np.dot(np.dot(np.linalg.inv(np.dot(Xless.T,Xless)/numsamples), Xless.T),ytrain)/numsamples
 
     def predict(self, Xtest):
