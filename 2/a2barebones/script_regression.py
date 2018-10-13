@@ -33,7 +33,12 @@ if __name__ == '__main__':
                 'Mean': algs.MeanPredictor(),
                 'FSLinearRegression5': algs.FSLinearRegression({'features': [1,2,3,4,5]}),
                 'FSLinearRegression50': algs.FSLinearRegression({'features': range(50)}),
-                'RidgeLinearRegression': algs.RidgeLinearRegression(),
+                'RidgeLinearRegression1': algs.RidgeLinearRegression({'regwgt': 0.0}),
+                'RidgeLinearRegression2': algs.RidgeLinearRegression({'regwgt': 0.01}),
+                'RidgeLinearRegression3': algs.RidgeLinearRegression({'regwgt': 1.0}),
+                'BGD1': algs.BGDLinearRegression(),
+                'Lasso1': algs.LassoLinearRegression(),
+                'SGD1': algs.SGDLinearRegression(),
              }
     # for numFeatures in range(15, 385, 50):
     #     regressionalgs['FSLinearRegressionAsc{}'.format(numFeatures)] = algs.FSLinearRegression({'features': range(numFeatures) })
@@ -60,11 +65,11 @@ if __name__ == '__main__':
 
         print(('Running on train={0} and test={1} samples for run {2}').format(trainset[0].shape[0], testset[0].shape[0],r))
 
-        for p in range(numparams):
-            params = parameters[p]
+        for p in range(1):
+            # params = parameters[p]
             for learnername, learner in regressionalgs.items():
                 # Reset learner for new parameters
-                learner.reset(params)
+                # learner.reset(params)
                 print ('Running learner = ' + learnername + ' on parameters ' + str(learner.getparams()))
                 # Train model
                 learner.learn(trainset[0], trainset[1])
