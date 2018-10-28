@@ -110,7 +110,6 @@ class NaiveBayes(Classifier):
         ### YOUR CODE HERE
         # for feature in self.numfeatures:
         for label in range(self.numclasses):
-
             filter = Xtrain[np.where(ytrain == label)[0], :self.numfeatures]
             self.means[label, :] = np.mean(filter, axis=0)
             self.stds[label, :] = np.std(filter, axis=0)
@@ -135,14 +134,11 @@ class NaiveBayes(Classifier):
             max_ind = -1
             for label in range(self.numclasses):
                 _ = (norm.pdf(sample[feature], loc=self.means[label][feature], scale=self.stds[label][feature]) for feature in range(Xtest.shape[1] - 1))
-                # print(sample[0], '\n', self.means[0], '\n', self.stds[0])
                 likelihoods = np.fromiter(_, dtype=np.float)
-                # likelihoods = (norm.pdf(sample, loc=self.means[feature], scale=self.stds[feature]) for feature in range(self.numfeatures))
                 pr = self.priors[label] * np.prod(likelihoods)
                 if max_prod < pr:
                     max_prod = pr
                     max_ind = label
-                # np.prod()
 
             ytest[cnt] = max_ind 
         ### END YOUR CODE
@@ -173,9 +169,12 @@ class LogitReg(Classifier):
         """
 
         cost = 0.0
+        num_samples = X.shape[0]
 
         ### YOUR CODE HERE
-
+        for cnt in range(num_samples):
+            cost += -y[cnt] * np.log(utils.sigmoid(np.dot(theta, X[cnt, :])))
+            cost += -(1 - y[cnt]) * np.log(1 - utils.sigmoid(np.dot(theta, X[cnt, :])))
         ### END YOUR CODE
 
         return cost
@@ -188,7 +187,7 @@ class LogitReg(Classifier):
         grad = np.zeros(len(theta))
 
         ### YOUR CODE HERE
-
+        grad = X.T @ (utils.sigmoid(X @ theta) - y)
         ### END YOUR CODE
 
         return grad
@@ -199,9 +198,17 @@ class LogitReg(Classifier):
         """
 
         self.weights = np.zeros(Xtrain.shape[1],)
-
+        
+        etha = 0.0001
+        threshold = 0.0001
+        delta = 1000
         ### YOUR CODE HERE
-
+        while delta > threshold:
+            grad = self.logit_cost_grad(self.weights, Xtrain, ytrain)
+            # print(grad.shape)
+            delta = np.amax(np.abs(etha * grad))
+            self.weights += - etha * grad
+            # print(delta)
         ### END YOUR CODE
 
     def predict(self, Xtest):
@@ -212,7 +219,9 @@ class LogitReg(Classifier):
         ytest = np.zeros(Xtest.shape[0], dtype=int)
 
         ### YOUR CODE HERE
-
+        # for cnt in range(ytest.shape[0]):
+        #     ytest[cnt] = round()
+        ytest = np.round(utils.sigmoid(Xtest @ self.weights))
         ### END YOUR CODE
 
         assert len(ytest) == Xtest.shape[0]
@@ -240,7 +249,7 @@ class NeuralNet(Classifier):
         self.params = {'nh': 16,
                     'transfer': 'sigmoid',
                     'stepsize': 0.01,
-                    'epochs': 10}
+                    'epochs': 100}
         self.reset(parameters)
 
     def reset(self, parameters):
@@ -259,10 +268,12 @@ class NeuralNet(Classifier):
         Returns the output of the current neural network for the given input
         """
         # hidden activations
-        a_hidden = self.transfer(np.dot(self.w_input, inputs))
+        # a_hidden = self.transfer(np.dot(self.w_input, inputs))
+        a_hidden = self.transfer(inputs @ self.w_input)
 
         # output activations
-        a_output = self.transfer(np.dot(self.w_output, a_hidden))
+        # a_output = self.transfer(np.dot(self.w_output, a_hidden))
+        a_output = self.transfer(a_hidden @ self.w_output)
 
         return (a_hidden, a_output)
 
@@ -272,15 +283,72 @@ class NeuralNet(Classifier):
         for the cost function with respect to self.w_input and self.w_output.
         """
 
-        ### YOUR CODE HERE
 
+        ### YOUR CODE HERE
+        # a_hidden = self.transfer(np.dot(self.w_input, x))
+        # a_output = self.transfer(np.dot(self.w_output, a_hidden))
+        a_hidden, a_output = self.feedforward(x)
+        # loss = - y * np.log(a_output) - (1 - y) * np.log(1 - a_output)
+        dloss = (- y / a_output + (1 - y) / (1 - a_output))[0]
+
+        # print(self.dtransfer(a_hidden @ self.w_output))
+        nabla_output = dloss * self.dtransfer(a_hidden @ self.w_output) * a_hidden
+        
+        print(self.w_output.shape, self.dtransfer(x @ self.w_input), x.shape)
+        nabla_input = dloss * self.dtransfer(a_hidden @ self.w_output) * x @ self.dtransfer(x @ self.w_input) @ self.w_output 
         ### END YOUR CODE
 
+        # print(nabla_input.shape, self.w_input.shape)
         assert nabla_input.shape == self.w_input.shape
         assert nabla_output.shape == self.w_output.shape
         return (nabla_input, nabla_output)
 
     # TODO: implement learn and predict functions
+
+    def learn(self, Xtrain, ytrain):
+        """
+        Learn the weights using the training data
+        """
+
+        # self.weights = np.zeros(Xtrain.shape[1],)
+        num_features = Xtrain.shape[1]
+        num_samples = Xtrain.shape[0]
+        nh = self.params["nh"]
+        self.w_input = np.random.rand(num_features, nh)
+        self.w_output = np.random.rand(nh, 1)
+        
+        
+        ### YOUR CODE HERE
+        step_size = self.params["stepsize"]
+        for _ in range(self.params['epochs']):
+            for cnt in range(num_samples):
+                nabla_input, nablab_output = self.backprop(Xtrain[cnt, :], ytrain[cnt])
+                self.w_input += -step_size * nabla_input
+                self.w_output +=  -step_size * nablab_output
+            # grad = self.logit_cost_grad(self.weights, Xtrain, ytrain)
+            # print(grad.shape)
+            # delta = np.amax(np.abs(etha * grad))
+            # self.weights += - etha * grad
+            # print(delta)
+            
+        ### END YOUR CODE
+
+    def predict(self, Xtest):
+        """
+        Use the parameters computed in self.learn to give predictions on new
+        observations.
+        """
+        ytest = np.zeros(Xtest.shape[0], dtype=int)
+
+        ### YOUR CODE HERE
+        # for cnt in range(ytest.shape[0]):
+        #     ytest[cnt] = round()
+        _, output = self.feedforward(Xtest)
+        ytest = np.round(output)
+        ### END YOUR CODE
+
+        assert len(ytest) == Xtest.shape[0]
+        return ytest
 
 class KernelLogitReg(LogitReg):
     """ Implement kernel logistic regression.
