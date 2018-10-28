@@ -14,7 +14,10 @@ def sigmoid(xvec):
     """ Compute the sigmoid function """
     # Cap -xvec, to avoid overflow
     # Undeflow is okay, since it get set to zero
-    xvec[xvec < -100] = -100
+    if type(xvec) is not np.float64:
+        xvec[xvec < -100] = -100
+    else:
+        xvec = np.maximum(xvec, -100)
 
     vecsig = 1.0 / (1.0 + np.exp(np.negative(xvec)))
  

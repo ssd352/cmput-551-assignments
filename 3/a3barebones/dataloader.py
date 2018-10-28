@@ -53,11 +53,11 @@ def load_susy_complete(trainsize=500, testsize=1000):
     return trainset,testset
 
 def load_census(trainsize=1000, testsize=1000):
-    maxsamples = 32562;
+    maxsamples = 32562
     strtype = 'a50'
-    censusdtype={'names': ('age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'income'), 'formats': ('f', strtype, 'f', strtype,'f',strtype,strtype,strtype,strtype,strtype,'f','f','f',strtype,strtype)};
-    incomeindex = 14;
-    convs = {14: lambda s: int(b'=' in s)};
+    censusdtype={'names': ('age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'income'), 'formats': ('f', strtype, 'f', strtype,'f',strtype,strtype,strtype,strtype,strtype,'f','f','f',strtype,strtype)}
+    incomeindex = 14
+    convs = {14: lambda s: int(b'=' in s)}
     dataset = np.loadtxt('datasets/censusincome.txt', delimiter=',',dtype=censusdtype,converters = convs)
     numsamples = dataset.shape[0]
     subsetsamples =  trainsize+testsize
@@ -65,7 +65,7 @@ def load_census(trainsize=1000, testsize=1000):
     # Doing this specifically for census, since we do not want to add a bias unit
     # and because we cannot normalize features
     randindices = np.random.choice(numsamples,subsetsamples, replace=False)
-    vals = np.zeros(subsetsamples);
+    vals = np.zeros(subsetsamples)
     for ii in range(subsetsamples):
         if b'1' == dataset[randindices[ii]][incomeindex]:
             vals[ii] = 1.0

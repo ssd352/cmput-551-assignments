@@ -292,10 +292,20 @@ class NeuralNet(Classifier):
         dloss = (- y / a_output + (1 - y) / (1 - a_output))[0]
 
         # print(self.dtransfer(a_hidden @ self.w_output))
-        nabla_output = dloss * self.dtransfer(a_hidden @ self.w_output) * a_hidden
+        nabla_output = np.ones(self.w_output.shape)
+        nabla_output[:, 0] = dloss * self.dtransfer(a_hidden @ self.w_output) * a_hidden
+        # np.expand_dims(nabla_output, axis=1)
+        # print(nabla_output.shape, self.w_output.shape)
         
-        print(self.w_output.shape, self.dtransfer(x @ self.w_input), x.shape)
-        nabla_input = dloss * self.dtransfer(a_hidden @ self.w_output) * x @ self.dtransfer(x @ self.w_input) @ self.w_output 
+        nabla_input = np.ones(self.w_input.shape)
+        nabla_input *= dloss * self.dtransfer(a_hidden @ self.w_output)
+        for i in range(nabla_input.shape[0]):
+            for j in range(nabla_input.shape[1]):
+                nabla_input[i, j] *= self.w_output[j, 0] * self.dtransfer(x @ self.w_input[:, j]) * x[i] 
+
+        
+        # print(self.w_output.shape, self.dtransfer(x @ self.w_input), x.shape)
+        # nabla_input = dloss * self.dtransfer(a_hidden @ self.w_output) * x @ self.dtransfer(x @ self.w_input) @ self.w_output 
         ### END YOUR CODE
 
         # print(nabla_input.shape, self.w_input.shape)
