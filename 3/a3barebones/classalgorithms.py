@@ -377,6 +377,13 @@ class KernelLogitReg(LogitReg):
         # Default: no regularization
         self.params = {'regwgt': 0.0, 'regularizer': 'None', 'kernel': 'None'}
         self.reset(parameters)
+        self.kernel = None
+        if self.params['kernel'] == "None":
+            self.kernel = self.linear
+        elif self.params['kernel'] == "linear":
+            self.kernel = self.linear
+        elif self.params['kernel'] == "hamming":
+            self.kernel = self.hamming
 
     def learn(self, Xtrain, ytrain):
         """
@@ -387,18 +394,72 @@ class KernelLogitReg(LogitReg):
         Ktrain = None
 
         ### YOUR CODE HERE
-
+        
+        
+        self.num_samples = Xtrain.shape[0]
+        self.Xtrain = Xtrain
+        Ktrain = np.zeros(shape=(self.num_samples, self.num_samples))
+        for i in range(self.num_samples):
+            for j in range(self.num_samples):
+                Ktrain[i, j] = self.kernel(Xtrain[i, :], Xtrain[j, :])
         ### END YOUR CODE
 
         self.weights = np.zeros(Ktrain.shape[1],)
 
+        etha = 0.0001
+        threshold = 0.0001
+        delta = 1000
         ### YOUR CODE HERE
+        while delta > threshold:
+            grad = self.logit_cost_grad(self.weights, Ktrain, ytrain)
+            # print(grad.shape)
+            delta = np.amax(np.abs(etha * grad))
+            self.weights += - etha * grad
 
         ### END YOUR CODE
 
         self.transformed = Ktrain # Don't delete this line. It's for evaluation.
 
     # TODO: implement necessary functions
+
+    # def logit_cost_grad(self, theta, X, y):
+    #     """
+    #     Compute gradients of the cost with respect to theta.
+    #     """
+
+    #     grad = np.zeros(len(theta))
+
+    #     ### YOUR CODE HERE
+    #     grad = X.T @ (utils.sigmoid(X @ theta) - y)
+    #     ### END YOUR CODE
+
+        # return grad
+
+    def predict(self, Xtest):
+        """
+        Use the parameters computed in self.learn to give predictions on new
+        observations.
+        """
+        ytest = np.zeros(Xtest.shape[0], dtype=int)
+
+        ### YOUR CODE HERE
+        # for cnt in range(ytest.shape[0]):
+        #     ytest[cnt] = round()
+        Ktest = np.zeros(shape=(Xtest.shape[0], self.num_samples))
+        for i in range(Ktest.shape[0]):
+            for j in range(Ktest.shape[1]):
+                Ktest[i, j] = self.kernel(Xtest[i, :], self.Xtrain[j, :])
+        ytest = np.round(utils.sigmoid(Ktest @ self.weights))
+        ### END YOUR CODE
+
+        assert len(ytest) == Xtest.shape[0]
+        return ytest
+
+    def hamming(self, x1, x2):
+        return np.count_nonzero(x1 == x2)
+    
+    def linear(self, x1, x2):
+        return np.dot(x1, x2)
 
 
 # ======================================================================
