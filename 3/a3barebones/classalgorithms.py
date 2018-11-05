@@ -378,9 +378,9 @@ class KernelLogitReg(LogitReg):
         self.params = {'regwgt': 0.0, 'regularizer': 'None', 'kernel': 'None'}
         self.reset(parameters)
         self.kernel = None
-        if self.params['kernel'] == "None":
-            self.kernel = self.linear
-        elif self.params['kernel'] == "linear":
+        # if self.params['kernel'] == "None":
+        #    self.kernel = self.linear
+        if self.params['kernel'] == "linear":
             self.kernel = self.linear
         elif self.params['kernel'] == "hamming":
             self.kernel = self.hamming
@@ -396,24 +396,28 @@ class KernelLogitReg(LogitReg):
         ### YOUR CODE HERE
         
         
-        self.num_samples = Xtrain.shape[0]
+        self.num_samples = 5000  # Xtrain.shape[0]
         self.Xtrain = Xtrain
-        Ktrain = np.zeros(shape=(self.num_samples, self.num_samples))
-        for i in range(self.num_samples):
-            for j in range(self.num_samples):
-                Ktrain[i, j] = self.kernel(Xtrain[i, :], Xtrain[j, :])
+        if self.params['kernel'] == "None":
+            Ktrain = Xtrain
+        else:
+            Ktrain = np.zeros(shape=(Xtrain.shape[0], self.num_samples))
+            for i in range(Xtrain.shape[0]):
+                for j in range(self.num_samples):
+                    Ktrain[i, j] = self.kernel(Xtrain[i, :], Xtrain[j, :])
         ### END YOUR CODE
 
         self.weights = np.zeros(Ktrain.shape[1],)
 
         etha = 0.0001
-        threshold = 0.0001
+        threshold = 0.001
         delta = 1000
         ### YOUR CODE HERE
         while delta > threshold:
             grad = self.logit_cost_grad(self.weights, Ktrain, ytrain)
             # print(grad.shape)
             delta = np.amax(np.abs(etha * grad))
+            print(delta)
             self.weights += - etha * grad
 
         ### END YOUR CODE
@@ -445,10 +449,13 @@ class KernelLogitReg(LogitReg):
         ### YOUR CODE HERE
         # for cnt in range(ytest.shape[0]):
         #     ytest[cnt] = round()
-        Ktest = np.zeros(shape=(Xtest.shape[0], self.num_samples))
-        for i in range(Ktest.shape[0]):
-            for j in range(Ktest.shape[1]):
-                Ktest[i, j] = self.kernel(Xtest[i, :], self.Xtrain[j, :])
+        if self.params["kernel"] == "None":
+            Ktest = Xtest
+        else:
+            Ktest = np.zeros(shape=(Xtest.shape[0], self.num_samples))
+            for i in range(Ktest.shape[0]):
+                for j in range(Ktest.shape[1]):
+                    Ktest[i, j] = self.kernel(Xtest[i, :], self.Xtrain[j, :])
         ytest = np.round(utils.sigmoid(Ktest @ self.weights))
         ### END YOUR CODE
 
@@ -456,7 +463,8 @@ class KernelLogitReg(LogitReg):
         return ytest
 
     def hamming(self, x1, x2):
-        return np.count_nonzero(x1 == x2)
+        # return np.count_nonzero(x1 == x2)
+        return np.count_nonzero(np.abs(x1 - x2) < 1e-6)
     
     def linear(self, x1, x2):
         return np.dot(x1, x2)

@@ -30,6 +30,8 @@ if __name__ == '__main__':
                  'Linear Regression': algs.LinearRegressionClass(),
                  'Logistic Regression': algs.LogitReg(),
                  'Linear Logistic Regression': algs.KernelLogitReg({'kernel': 'linear'}),
+                 
+                 # 'NoKernel Logistic Regression': algs.KernelLogitReg(),
                  'Hamming Logistic Regression': algs.KernelLogitReg({'kernel': 'hamming'}),
                  'Neural Network': algs.NeuralNet({'epochs': 100}),
                 }
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     numparams = len(parameters)
 
     errors = {}
-    for learnername in classalgs:
+    for learnername in sorted(classalgs.keys()):
         errors[learnername] = np.zeros((numparams,numruns))
 
     for r in range(numruns):
@@ -56,7 +58,7 @@ if __name__ == '__main__':
 
         for p in range(numparams):
             params = parameters[p]
-            for learnername, learner in classalgs.items():
+            for learnername, learner in sorted(classalgs.items()):
                 # Reset learner for new parameters
                 learner.reset(params)
                 print ('Running learner = ' + learnername + ' on parameters ' + str(learner.getparams()))
