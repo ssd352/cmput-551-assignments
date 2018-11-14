@@ -29,10 +29,10 @@ if __name__ == '__main__':
                  'Naive Bayes Ones': algs.NaiveBayes({'usecolumnones': True}),
                  'Linear Regression': algs.LinearRegressionClass(),
                  'Logistic Regression': algs.LogitReg(),
-                 'Linear Logistic Regression': algs.KernelLogitReg({'kernel': 'linear'}),
+                 'Linear Logistic Regression': algs.KernelLogitReg({'kernel': 'linear', 'stepsize': 5e-7}),
                  
                  # 'NoKernel Logistic Regression': algs.KernelLogitReg(),
-                 'Hamming Logistic Regression': algs.KernelLogitReg({'kernel': 'hamming'}),
+                 'Hamming Logistic Regression': algs.KernelLogitReg({'kernel': 'hamming', 'stepsize': 2e-7}),
                  'Neural Network': algs.NeuralNet({'epochs': 100}),
                 }
     numalgs = len(classalgs)
