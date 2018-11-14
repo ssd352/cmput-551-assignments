@@ -375,7 +375,7 @@ class KernelLogitReg(LogitReg):
     """
     def __init__(self, parameters={}):
         # Default: no regularization
-        self.params = {'regwgt': 0.0, 'regularizer': 'None', 'kernel': 'None'}
+        self.params = {'regwgt': 0.0, 'regularizer': None, 'kernel': None, 'stepsize': 1e-6, 'tolerance': None}
         self.reset(parameters)
         self.kernel = None
         # if self.params['kernel'] == "None":
@@ -396,29 +396,37 @@ class KernelLogitReg(LogitReg):
         ### YOUR CODE HERE
         
         
-        self.num_samples = 5000  # Xtrain.shape[0]
+        self.num_samples = Xtrain.shape[0]
         self.Xtrain = Xtrain
-        if self.params['kernel'] == "None":
+        if self.params['kernel'] is None:
             Ktrain = Xtrain
+        # elif self.params['kernel'] == "linear":
+        #     Ktrain = np.dot(Xtrain, Xtrain)
         else:
             Ktrain = np.zeros(shape=(Xtrain.shape[0], self.num_samples))
             for i in range(Xtrain.shape[0]):
                 for j in range(self.num_samples):
                     Ktrain[i, j] = self.kernel(Xtrain[i, :], Xtrain[j, :])
+                    # print(Ktrain[i, j])
         ### END YOUR CODE
 
         self.weights = np.zeros(Ktrain.shape[1],)
 
-        etha = 0.0001
-        threshold = 0.001
+        # etha = 1e-5
+        etha = self.params["stepsize"]
+        # threshold = 1e-2
+        threshold = etha * 30
         delta = 1000
         ### YOUR CODE HERE
+        cost = self.logit_cost(self.weights, Ktrain, ytrain)
+        print("cost: {}".format(cost))
         while delta > threshold:
             grad = self.logit_cost_grad(self.weights, Ktrain, ytrain)
             # print(grad.shape)
             delta = np.amax(np.abs(etha * grad))
-            print(delta)
             self.weights += - etha * grad
+            cost = self.logit_cost(self.weights, Ktrain, ytrain)
+            print("cost: {}\ndelta: {}".format(cost, delta))
 
         ### END YOUR CODE
 
@@ -464,10 +472,11 @@ class KernelLogitReg(LogitReg):
 
     def hamming(self, x1, x2):
         # return np.count_nonzero(x1 == x2)
-        return np.count_nonzero(np.abs(x1 - x2) < 1e-6)
+        # print(x1, x2)
+        return np.count_nonzero(np.abs(x1 - x2) < 1e-2)
     
     def linear(self, x1, x2):
-        return np.dot(x1, x2)
+        return np.dot(x1, x2) / np.linalg.norm(x1) / np.linalg.norm(x2)
 
 
 # ======================================================================
