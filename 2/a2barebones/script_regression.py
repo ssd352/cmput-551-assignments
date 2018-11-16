@@ -37,8 +37,10 @@ if __name__ == '__main__':
                 'RidgeLinearRegression2': algs.RidgeLinearRegression({'regwgt': 0.01}),
                 'RidgeLinearRegression3': algs.RidgeLinearRegression({'regwgt': 1.0}),
                 'BGD1': algs.BGDLinearRegression(),
+                'BGD1RMS': algs.BGDLinearRegression({'rmsprop': True}),
                 'Lasso1': algs.LassoLinearRegression(),
                 'SGD1': algs.SGDLinearRegression(),
+                'SGD1RMS': algs.SGDLinearRegression({'rmsprop': True}),
              }
     # for numFeatures in range(15, 385, 50):
     #     regressionalgs['FSLinearRegressionAsc{}'.format(numFeatures)] = algs.FSLinearRegression({'features': range(numFeatures) })
@@ -55,7 +57,7 @@ if __name__ == '__main__':
     numparams = len(parameters)
     
     errors = {}
-    for learnername in regressionalgs:
+    for learnername in sorted(regressionalgs.keys()):
         errors[learnername] = np.zeros((numparams,numruns))
 
     for r in range(numruns):
@@ -67,7 +69,7 @@ if __name__ == '__main__':
 
         for p in range(1):
             # params = parameters[p]
-            for learnername, learner in regressionalgs.items():
+            for learnername, learner in sorted(regressionalgs.items()):
                 # Reset learner for new parameters
                 # learner.reset(params)
                 print ('Running learner = ' + learnername + ' on parameters ' + str(learner.getparams()))

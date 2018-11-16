@@ -184,13 +184,11 @@ class LassoLinearRegression(Regressor):
 class BGDLinearRegression(Regressor):
     def __init__( self, parameters={} ):
         # Default parameters, any of which can be overwritten by values passed to params
-        self.params = {'tol': 1e-4, "max_iter": 100000, }
+        self.params = {'tol': 1e-4, "max_iter": 100000, "rmsprop": False}
         # self.weights = np.random.randn()
         self.reset(parameters)
+        self.rp = None
     
-    
-        
-
     def line_search(self, wt, cost_func, g):
         etha_max = 1
         tau = 0.7
@@ -212,6 +210,7 @@ class BGDLinearRegression(Regressor):
         # to make the regularization parameter not dependent on numsamples
         dim = Xtrain.shape[1]
         self.weights = np.random.randn(dim)
+        self.rp = RMSProp(dim) 
         self.tolerance = self.params["tol"]
         err = np.Infinity
         numsamples = Xtrain.shape[0]
@@ -229,7 +228,9 @@ class BGDLinearRegression(Regressor):
             cnt += 1
             g = Xtrain.T @ (Xtrain @ self.weights - ytrain) / numsamples
             etha = self.line_search(self.weights, cost, g)[1]
-            self.weights -= etha * g
+            if self.params["rmsprop"]:
+                self.rp.add_weights(g)
+            self.weights -= etha * g / self.rp.mean_weights
             cw = cost(self.weights)
             # cw = np.linalg.norm(Xtrain @ self.weights - ytrain) ** 2 / 2 / numsamples
         # self.weights = np.dot(np.dot(np.linalg.pinv((Xless.T @ Xless) / numsamples + self.lmd * np.eye(Xtrain.shape[1])), Xless.T),ytrain)/numsamples
@@ -243,15 +244,17 @@ class BGDLinearRegression(Regressor):
 class SGDLinearRegression(Regressor):
     def __init__( self, parameters={} ):
         # Default parameters, any of which can be overwritten by values passed to params
-        self.params = {"num_epochs": 1000}
+        self.params = {"num_epochs": 1000, "rmsprop": False}
         # self.weights = np.random.randn()
         self.reset(parameters)
+        self.rp = None
 
     def learn(self, Xtrain, ytrain):
         """ Learns using the traindata """
         # Dividing by numsamples before adding ridge regularization
         # to make the regularization parameter not dependent on numsamples
         dim = Xtrain.shape[1]
+        self.rp = RMSProp(dim) 
         self.weights = np.random.randn(dim)
         self.num_epochs = self.params["num_epochs"]
         numsamples = Xtrain.shape[0]
@@ -262,9 +265,11 @@ class SGDLinearRegression(Regressor):
                 xj = Xtrain[j, :]
                 # print(xj.shape, ytrain.shape)
                 g = (xj.T @ self.weights - ytrain[j]) * xj
+                if self.params["rmsprop"]:
+                    self.rp.add_weights(g)
                 # print(g)
                 etha = etha_0 / (i + 1)
-                self.weights -= etha * g
+                self.weights -= etha * g / self.rp.mean_weights
             # Xless = Xtrain
             # self.lmd = self.params["regwgt"]
 
@@ -272,3 +277,25 @@ class SGDLinearRegression(Regressor):
         Xless = Xtest
         ytest = np.dot(Xless, self.weights)
         return ytest    
+
+class MeanProp:
+    def __init__(self, shape):
+        self.__mean_weights = np.ones(shape)
+        self.__n = 0
+    def add_weights(self, weights):
+        self.__n += 1
+        self.__mean_weights += (weights - self.__mean_weights) / self.__n
+    @property
+    def mean_weights(self):
+        return self.__mean_weights
+
+class RMSProp:
+    def __init__(self, shape):
+        self.__mean_weights = np.ones(shape)
+        self.__n = 0
+    def add_weights(self, weights):
+        self.__n += 1
+        self.__mean_weights += (np.square(weights) - self.__mean_weights) / self.__n
+    @property
+    def mean_weights(self):
+        return np.sqrt(self.__mean_weights)
