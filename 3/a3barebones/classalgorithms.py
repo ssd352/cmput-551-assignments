@@ -415,18 +415,21 @@ class KernelLogitReg(LogitReg):
         # etha = 1e-5
         etha = self.params["stepsize"]
         # threshold = 1e-2
-        threshold = etha * 30
+        if self.params['tolerance'] is None:
+            threshold = etha * 10
+        else:
+            threshold = self.params['tolerance']
         delta = 1000
         ### YOUR CODE HERE
         cost = self.logit_cost(self.weights, Ktrain, ytrain)
-        print("cost: {}".format(cost))
+        # print("cost: {}".format(cost))
         while delta > threshold:
             grad = self.logit_cost_grad(self.weights, Ktrain, ytrain)
             # print(grad.shape)
             delta = np.amax(np.abs(etha * grad))
             self.weights += - etha * grad
             cost = self.logit_cost(self.weights, Ktrain, ytrain)
-            print("cost: {}\ndelta: {}".format(cost, delta))
+            # print("cost: {}\ndelta: {}".format(cost, delta))
 
         ### END YOUR CODE
 
